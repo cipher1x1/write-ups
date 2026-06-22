@@ -14,7 +14,7 @@ I began by using `strings` to extract readable data from the binary, which revea
 
 ```
 error: that which is undead may not be encrypted
-BRAAAAAAAAAAAAAAAAAAAAAAAAAINS!!
+BRAAAAAAAAAAAAAAAAAAAAAAAAAINS!! <--------- Important later
 successfully zombified your file!
 chacha20_block_next
 GCC: (GNU) 14.2.1 20240805
@@ -25,9 +25,9 @@ main.cold
 
 ### Key Findings
 
-From these strings, I determined that:
+From these strings I extracted, I determined that:
 - The program was written in CPP and compiled with GCC 14.2.1
-- ChaCha20 encryption** was being used
+- ChaCha20 encryption was being used
 - A hardcoded encryption key was present: `BRAAAAAAAAAAAAAAAAAAAAAAAAAINS!!`
 - Files receive a `.undead` extension after encryption
 
@@ -70,7 +70,7 @@ undefined4 main(int param_1,undefined8 *param_2)
       builtin_strncpy(__dest + sVar2,".undead",8);
       iVar1 = read_file(pcVar3,&local_38,&local_40);
       if (iVar1 == 0) {
-        encrypt_buf(local_40,local_38,"BRAAAAAAAAAAAAAAAAAAAAAAAAAINS!!");
+        encrypt_buf(local_40,local_38,"BRAAAAAAAAAAAAAAAAAAAAAAAAAINS!!"); <-------- Remember this from the strings output? This is the key.
         iVar1 = rename(pcVar3,__dest);
         if (iVar1 == 0) {
           iVar1 = open(__dest,0x201);
@@ -113,12 +113,12 @@ undefined4 main(int param_1,undefined8 *param_2)
 The pseudo-code reveals the encryption workflow:
 
 1. Read the input file into a buffer
-2. Check if the file is already encrypted (has `.undead` extension)—if so, reject it
+2. Check if the file is already encrypted (has `.undead` extension). If it does, reject it
 3. Encrypt the buffer using the hardcoded key `"BRAAAAAAAAAAAAAAAAAAAAAAAAAINS!!"`
 4. Rename the original file by appending `.undead` extension
 5. Write the encrypted data to the new file
 
-The vulnerability is pretty trivial: The key is hardcoded, meaning it can be easily recovered. 
+The vulnerability is pretty trivial and simple to understand: The key is hardcoded, meaning it can be easily recovered. 
 
 ---
 
